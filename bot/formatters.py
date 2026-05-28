@@ -18,7 +18,7 @@ def parse_amount_to_cents(raw: str) -> int:
     except InvalidOperation as exc:
         raise ValueError("invalid amount") from exc
 
-    if amount <= 0:
+    if not amount.is_finite() or amount <= 0:
         raise ValueError("amount must be positive")
     cents = (amount * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
     if amount.as_tuple().exponent < -2:
@@ -34,24 +34,28 @@ def format_amount(cents: int) -> str:
     return f"${dollars}.{remainder:02d}"
 
 
+def validate_period(period: str) -> str:
+    if period not in PERIOD_LABELS:
+        raise ValueError(f"unknown period: {period}")
+    return period
+
+
 def monthly_cents(amount_cents: int, period: str) -> int:
+    validate_period(period)
     if period == "weekly":
         return round(amount_cents * 52 / 12)
     if period == "monthly":
         return amount_cents
-    if period == "yearly":
-        return round(amount_cents / 12)
-    raise ValueError(f"unknown period: {period}")
+    return round(amount_cents / 12)
 
 
 def add_period(source: date, period: str) -> date:
+    validate_period(period)
     if period == "weekly":
         return source + timedelta(days=7)
     if period == "yearly":
         return _add_months(source, 12)
-    if period == "monthly":
-        return _add_months(source, 1)
-    raise ValueError(f"unknown period: {period}")
+    return _add_months(source, 1)
 
 
 def _add_months(source: date, months: int) -> date:

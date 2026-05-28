@@ -117,6 +117,9 @@ class Database:
             return cursor.rowcount > 0
 
     async def list_due_subscriptions(self, offsets: set[int]) -> list[dict[str, Any]]:
+        if not offsets:
+            return []
+
         today = date.today()
         targets = {(today.toordinal() + offset): offset for offset in offsets}
         min_date = date.fromordinal(min(targets)).isoformat()

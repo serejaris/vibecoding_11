@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 
 from aiogram import Bot
 
 from bot.database import Database
 from bot.formatters import format_amount, format_date
 from bot.keyboards import paid_keyboard
+
+logger = logging.getLogger(__name__)
 
 
 async def reminder_loop(
@@ -35,11 +38,15 @@ async def send_due_reminders(bot: Bot, db: Database, offsets: set[int]) -> None:
         else:
             prefix = f"Через {offset} дн. списание"
 
-        await bot.send_message(
-            item["user_id"],
-            f"🔔 {prefix}\n"
-            f"{item['name']} — {format_amount(item['amount_cents'])}\n"
-            f"Дата: {format_date(payment_date)}",
-            reply_markup=paid_keyboard(item["id"]),
-        )
+        try:
+            await bot.send_message(
+                item["user_id"],
+                f"🔔 {prefix}\n"
+                f"{item['name']} — {format_amount(item['amount_cents'])}\n"
+                f"Дата: {format_date(payment_date)}",
+                reply_markup=paid_keyboard(item["id"]),
+            )
+        except Exception:
+            logger.exception("Failed to send reminder for subscription %s", item["id"])
+            continue
         await db.mark_reminder_sent(item["id"], payment_date, offset)

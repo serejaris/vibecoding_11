@@ -65,6 +65,17 @@ class DatabaseTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(await self.db.count_reminders(), 1)
 
+    async def test_list_due_subscriptions_returns_empty_for_no_offsets(self):
+        await self.db.create_subscription(
+            user_id=1,
+            name="Netflix",
+            amount_cents=1599,
+            period="monthly",
+            next_payment=date(2026, 6, 21),
+        )
+
+        self.assertEqual(await self.db.list_due_subscriptions(set()), [])
+
 
 if __name__ == "__main__":
     unittest.main()

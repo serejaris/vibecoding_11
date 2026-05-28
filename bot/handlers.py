@@ -15,6 +15,7 @@ from bot.formatters import (
     format_subscriptions_list,
     parse_amount_to_cents,
     parse_user_date,
+    validate_period,
 )
 from bot.keyboards import main_menu, period_keyboard, subscriptions_keyboard
 from bot.states import AddSubscription, ChangeDate
@@ -76,7 +77,11 @@ def create_router(db: Database) -> Router:
 
     @router.callback_query(AddSubscription.period, F.data.startswith("period:"))
     async def add_period_callback(callback: CallbackQuery, state: FSMContext) -> None:
-        period = callback.data.split(":", 1)[1]
+        try:
+            period = validate_period(callback.data.split(":", 1)[1])
+        except ValueError:
+            await callback.answer("Неизвестный период", show_alert=True)
+            return
         data = await state.get_data()
         next_payment = add_period(date.today(), period)
         await db.create_subscription(

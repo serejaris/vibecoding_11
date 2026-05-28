@@ -136,6 +136,16 @@ Optional startup check:
 
 Use the startup check only when a valid local `.env` is present. Stop the local process after verification unless the user asked to keep it running.
 
+## Regression Rules From Code Review
+
+- Treat Telegram callback data as untrusted input. Validate callback values before using them in database writes or date calculations.
+- Keep all subscription periods behind the shared formatter validation path: `weekly`, `monthly`, `yearly`.
+- Amount parsing must reject non-finite decimals such as `NaN` and `Infinity`.
+- Reminder scans must tolerate an empty offset set and return an empty result.
+- Reminder sending must isolate Telegram delivery failures per subscription. A failed `send_message` must be logged, must not mark the reminder as sent, and must not block reminders for other users.
+- Tests for critical paths belong in `tests/test_formatters.py`, `tests/test_database.py`, and `tests/test_reminders.py`.
+- Add or update tests before changing critical behavior around parsing, period math, reminder dedupe, due-subscription selection, and paid/reminder flows.
+
 ## Execution Contract
 
 - Start by identifying whether the change is product (`PRD.md`), technical (`AGENTS.md`), user-facing (`README.md`), or code.

@@ -7,6 +7,7 @@ from bot.formatters import (
     monthly_cents,
     parse_amount_to_cents,
     parse_user_date,
+    validate_period,
     urgency_icon,
 )
 
@@ -17,7 +18,7 @@ class FormatterTests(unittest.TestCase):
         self.assertEqual(parse_amount_to_cents("15,50"), 1550)
 
     def test_parse_amount_to_cents_rejects_invalid_values(self):
-        for value in ("", "abc", "-1", "0", "1.999"):
+        for value in ("", "abc", "-1", "0", "1.999", "NaN", "Infinity"):
             with self.subTest(value=value):
                 with self.assertRaises(ValueError):
                     parse_amount_to_cents(value)
@@ -45,6 +46,13 @@ class FormatterTests(unittest.TestCase):
         self.assertEqual(urgency_icon(2), "🔴")
         self.assertEqual(urgency_icon(7), "🟡")
         self.assertEqual(urgency_icon(8), "🟢")
+
+    def test_validate_period_accepts_only_supported_periods(self):
+        self.assertEqual(validate_period("weekly"), "weekly")
+        self.assertEqual(validate_period("monthly"), "monthly")
+        self.assertEqual(validate_period("yearly"), "yearly")
+        with self.assertRaises(ValueError):
+            validate_period("daily")
 
 
 if __name__ == "__main__":
