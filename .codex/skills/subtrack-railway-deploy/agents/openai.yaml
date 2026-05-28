@@ -1,0 +1,4 @@
+interface:
+  display_name: "SubTrack Railway Deploy"
+  short_description: "Deploy SubTrack bot to Railway safely"
+  default_prompt: "Use $subtrack-railway-deploy to debug or redeploy the SubTrack Telegram bot on Railway."
